@@ -51,5 +51,5 @@ public class CalculatorController {
     public void receiveResult(String message) {
         System.out.println("Received calculation result: " + message);
     }
-    
+
 }
