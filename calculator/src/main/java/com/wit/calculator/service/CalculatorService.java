@@ -1,5 +1,8 @@
 package com.wit.calculator.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -9,24 +12,39 @@ import java.math.MathContext;
 public class CalculatorService {
 
     private  static final MathContext mc = new MathContext(10); // Decimal precision
+    private static final String RESPONSE_TOPIC = "calculator_responses";
 
-    public BigDecimal add(BigDecimal a, BigDecimal b){
-        return a.add(b, mc);
-    }
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
-    public BigDecimal subtract(BigDecimal a, BigDecimal b) {
-        return a.subtract(b, mc);
-    }
+    @KafkaListener(topics = "calculator_requests")
+    public void processCalculationRequest(String message){
+        String[] parts = message.split(",");
+        BigDecimal a = new BigDecimal(parts[0]);
+        BigDecimal b = new BigDecimal(parts[1]);
+        String operation = parts[2];
+        BigDecimal result = null;
 
-    public BigDecimal multiply(BigDecimal a, BigDecimal b) {
-        return a.multiply(b, mc);
-    }
-
-    public BigDecimal divide(BigDecimal a, BigDecimal b) {
-        if (b.compareTo(BigDecimal.ZERO) == 0) {
-            throw new ArithmeticException("Division by zero is not allowed");
+        switch (operation){
+            case "sum":
+                result = a.add(b, mc);
+                break;
+            case "subtraction":
+                result = a.subtract(b, mc);
+                break;
+            case "multiplication":
+                result = a.multiply(b, mc);
+                break;
+            case "division":
+                if (b.compareTo(BigDecimal.ZERO) == 0) {
+                    kafkaTemplate.send(RESPONSE_TOPIC, "Division by zero error");
+                    return;
+                }
+                result = a.divide(b, mc);
+                break;
         }
-        return a.divide(b, mc);
+
+        kafkaTemplate.send(RESPONSE_TOPIC, result.toString());
     }
 
 }
