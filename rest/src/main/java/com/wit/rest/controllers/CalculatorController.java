@@ -1,8 +1,7 @@
 package com.wit.rest.controllers;
 
+import com.wit.rest.kafka.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,28 +13,25 @@ import java.math.BigDecimal;
 @RequestMapping("/api")
 public class CalculatorController {
 
-    private static final String REQUEST_TOPIC = "calculator-requests";
-    private static final String RESPONSE_TOPIC = "calculator-responses";
-
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaService kafkaService;
 
     @GetMapping("/sum")
     public void sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b){
         String message = a + "," + b + ",sum";
-        kafkaTemplate.send(REQUEST_TOPIC, message);
+        kafkaService.sendMessage(message, "sum");
     }
 
     @GetMapping("/subtraction")
     public void subtraction(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
         String message = a + "," + b + ",subtraction";
-        kafkaTemplate.send(REQUEST_TOPIC, message);
+        kafkaService.sendMessage(message, "subtraction");
     }
 
     @GetMapping("/multiplication")
     public void multiplication(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
         String message = a + "," + b + ",multiplication";
-        kafkaTemplate.send(REQUEST_TOPIC, message);
+        kafkaService.sendMessage(message, "multiplication");
     }
 
     @GetMapping("/division")
@@ -44,12 +40,7 @@ public class CalculatorController {
             throw new ArithmeticException("Division by zero is not allowed");
         }
         String message = a + "," + b + ",division";
-        kafkaTemplate.send(REQUEST_TOPIC, message);
-    }
-
-    @KafkaListener(topics = RESPONSE_TOPIC)
-    public void receiveResult(String message) {
-        System.out.println("Received calculation result: " + message);
+        kafkaService.sendMessage(message, "division");
     }
 
 }
