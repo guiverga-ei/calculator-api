@@ -44,7 +44,11 @@ public class CalculatorService {
                 break;
         }
 
-        kafkaTemplate.send(RESPONSE_TOPIC, result.toString());
+        if (result != null){
+            kafkaTemplate.send(RESPONSE_TOPIC, result.toString());
+        } else {
+            kafkaTemplate.send(RESPONSE_TOPIC, "null");
+        }
     }
 
 }
