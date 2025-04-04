@@ -51,7 +51,7 @@ public class CalculatorService {
         }
     }
 
-    private BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
+    BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
         switch (operation) {
             case "sum":
                 return a.add(b, mc);
