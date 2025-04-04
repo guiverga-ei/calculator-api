@@ -26,17 +26,22 @@ public class CalculatorService {
         log.debug("Processing message: {}", message);
         try {
             String[] parts = message.split(",");
-            if (parts.length != 3) {
+            if (parts.length != 4) {  // Expecting 4 parts: ID, operand a, operand b, operation
                 log.error("Invalid message format: {}", message);
-                kafkaTemplate.send(RESPONSE_TOPIC, "Invalid message format");
                 return;
             }
-            BigDecimal a = new BigDecimal(parts[0]);
-            BigDecimal b = new BigDecimal(parts[1]);
-            String operation = parts[2];
+            String id = parts[0];  // Extract the unique identifier for the request
+            BigDecimal a = new BigDecimal(parts[1]);
+            BigDecimal b = new BigDecimal(parts[2]);
+            String operation = parts[3];
             BigDecimal result = performOperation(a, b, operation);
-            kafkaTemplate.send(RESPONSE_TOPIC, result != null ? result.toString() : "Operation not supported");
-            log.info("Operation {} completed successfully", operation);
+            if (result != null) {
+                kafkaTemplate.send(RESPONSE_TOPIC, id, result.toString());  // Send response with the same ID
+                log.info("Operation {} completed successfully for ID {}", operation, id);
+            } else {
+                kafkaTemplate.send(RESPONSE_TOPIC, id, "Operation not supported");
+                log.warn("Operation not supported: {}", operation);
+            }
         } catch (NumberFormatException e) {
             log.error("Number format exception: {}", e.getMessage());
             kafkaTemplate.send(RESPONSE_TOPIC, "Invalid number format");
@@ -44,7 +49,6 @@ public class CalculatorService {
             log.error("Error processing calculation request", e);
             kafkaTemplate.send(RESPONSE_TOPIC, "Error in processing request");
         }
-
     }
 
     private BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
