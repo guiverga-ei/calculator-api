@@ -22,7 +22,7 @@ public class CalculatorController {
 
     @GetMapping("/sum")
     public void sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b){
-        String message = a + "," + b + "sum";
+        String message = a + "," + b + ",sum";
         kafkaTemplate.send(REQUEST_TOPIC, message);
     }
 
