@@ -1,4 +1,4 @@
-package com.wit.rest.controller;
+package com.wit.rest.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 @RequestMapping("/api")
 public class CalculatorController {
 
-    private static final String REQUEST_TOPIC = "calculator_requests";
-    private static final String RESPONSE_TOPIC = "calculator_responses";
+    private static final String REQUEST_TOPIC = "calculator-requests";
+    private static final String RESPONSE_TOPIC = "calculator-responses";
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;

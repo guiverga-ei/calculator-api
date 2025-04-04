@@ -1,4 +1,4 @@
-package com.wit.calculator.service;
+package com.wit.calculator.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,12 +12,13 @@ import java.math.MathContext;
 public class CalculatorService {
 
     private  static final MathContext mc = new MathContext(10); // Decimal precision
-    private static final String RESPONSE_TOPIC = "calculator_responses";
+    private static final String REQUEST_TOPIC = "calculator-requests";
+    private static final String RESPONSE_TOPIC = "calculator-responses";
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @KafkaListener(topics = "calculator_requests")
+    @KafkaListener(topics = REQUEST_TOPIC)
     public void processCalculationRequest(String message){
         String[] parts = message.split(",");
         BigDecimal a = new BigDecimal(parts[0]);
