@@ -23,7 +23,7 @@ public class CalculatorService {
 
     @KafkaListener(topics = REQUEST_TOPIC)
     public void processCalculationRequest(String message) {
-        log.debug("Processing message: {}", message);
+        log.info("Processing message: {}", message);
         try {
             String[] parts = message.split(",");
             if (parts.length != 4) {  // Expecting 4 parts: ID, operand a, operand b, operation
