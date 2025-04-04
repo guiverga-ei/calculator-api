@@ -2,9 +2,11 @@ package com.wit.rest.controllers;
 
 import com.wit.rest.kafka.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api")
@@ -13,48 +15,29 @@ public class CalculatorController {
     @Autowired
     private KafkaService kafkaService;
 
-    @GetMapping("/sum")
-    public ResponseEntity<?> sum(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        try {
-            kafkaService.sendMessage("sum", a, b);
-            return ResponseEntity.ok("Request for sum accepted");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error processing request: " + e.getMessage());
+    @GetMapping(path = "/{operation}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CompletableFuture<ResponseEntity<?>> performOperation(@PathVariable String operation,
+                                                                 @RequestParam BigDecimal a,
+                                                                 @RequestParam BigDecimal b) {
+        if (operation.equals("division") && b.compareTo(BigDecimal.ZERO) == 0) {
+            return CompletableFuture.completedFuture(
+                    ResponseEntity.badRequest()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body("{\"error\": \"Division by zero is not allowed\"}")
+            );
         }
-    }
 
-    @GetMapping("/subtraction")
-    public ResponseEntity<?> subtraction(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        try {
-            kafkaService.sendMessage("subtraction", a, b);
-            return ResponseEntity.ok("Request for subtraction accepted");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error processing request: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/multiplication")
-    public ResponseEntity<?> multiplication(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        try {
-            kafkaService.sendMessage("multiplication", a, b);
-            return ResponseEntity.ok("Request for multiplication accepted");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error processing request: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/division")
-    public ResponseEntity<?> division(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        try {
-            if (b.compareTo(BigDecimal.ZERO) == 0) {
-                throw new ArithmeticException("Division by zero is not allowed");
-            }
-            kafkaService.sendMessage("division", a, b);
-            return ResponseEntity.ok("Request for division accepted");
-        } catch (ArithmeticException e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error processing request: " + e.getMessage());
-        }
+        return kafkaService.sendMessage(operation, a, b)
+                .thenApply(result -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"result\": " + result + "}"))
+                .handle((res, ex) -> {
+                    if (ex != null) {
+                        return ResponseEntity.internalServerError()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body("{\"error\": \"" + ex.getMessage() + "\"}");
+                    }
+                    return res;
+                });
     }
 }

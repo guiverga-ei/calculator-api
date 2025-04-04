@@ -5,32 +5,43 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class KafkaService {
 
-    private static final Logger log = LoggerFactory.getLogger(KafkaService.class);
+    private static final Logger logger = LoggerFactory.getLogger(KafkaService.class);
     private static final String REQUEST_TOPIC = "calculator-requests";
     private static final String RESPONSE_TOPIC = "calculator-responses";
+    private ConcurrentHashMap<String, CompletableFuture<String>> responseFutures = new ConcurrentHashMap<>();
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    public void sendMessage(String operation, BigDecimal a, BigDecimal b) {
+    public CompletableFuture<String> sendMessage(String operation, BigDecimal a, BigDecimal b) {
         String id = UUID.randomUUID().toString();
-        String message = id + "," + a + "," + b + "," + operation;
+        String message = String.format("%s,%s,%s,%s", id, a, b, operation);
+        CompletableFuture<String> future = new CompletableFuture<>();
+        responseFutures.put(id, future);
         kafkaTemplate.send(REQUEST_TOPIC, id, message);
-        log.info("Sent message to Kafka with ID {}: {}", id, message);
+        logger.info("Sent message: ID={}, Operation={}", id, operation);
+        return future;
     }
 
     @KafkaListener(topics = RESPONSE_TOPIC)
-    public void receiveMessage(String message, org.springframework.messaging.MessageHeaders headers) {
-        String key = headers.get("kafka_receivedMessageKey", String.class);
-        log.info("Received calculation result for ID {}: {}", key, message);
+    public void handleResponse(String message, @Header("kafka_receivedMessageKey") String key) {
+        CompletableFuture<String> future = responseFutures.remove(key);
+        if (future != null) {
+            future.complete(message);
+            logger.info("Received response for ID {}: {}", key, message);
+        } else {
+            logger.warn("No future associated with ID {}", key);
+        }
     }
-
 }
