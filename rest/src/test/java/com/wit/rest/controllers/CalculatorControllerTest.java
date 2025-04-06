@@ -26,7 +26,7 @@ class CalculatorControllerTest {
 
     @Test
     void shouldReturnResultForSum() throws Exception {
-        Mockito.when(kafkaService.sendMessage("sum", new BigDecimal("2"), new BigDecimal("3")))
+        Mockito.when(kafkaService.sendMessage("aaa", "sum", new BigDecimal("2"), new BigDecimal("3")))
                 .thenReturn(CompletableFuture.completedFuture("5"));
 
         mockMvc.perform(get("/api/sum?a=2&b=3")

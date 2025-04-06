@@ -1,11 +1,13 @@
 package com.wit.rest.controllers;
 
 import com.wit.rest.kafka.KafkaService;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -36,14 +38,19 @@ public class CalculatorController {
     }
 
     private CompletableFuture<ResponseEntity<?>> handleOperation(String operation, BigDecimal a, BigDecimal b) {
-        return kafkaService.sendMessage(operation, a, b)
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+        return kafkaService.sendMessage(requestId, operation, a, b)
                 .handle((result, ex) -> {
+                    MDC.clear();
                     if (ex != null) {
                         return ResponseEntity.internalServerError()
+                                .header("X-Request-ID", requestId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body("{\"error\": \"" + ex.getMessage() + "\"}");
                     }
                     return ResponseEntity.ok()
+                            .header("X-Request-ID", requestId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body("{\"result\": " + result + "}");
                 });

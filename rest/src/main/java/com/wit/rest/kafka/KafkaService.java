@@ -24,24 +24,23 @@ public class KafkaService {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    public CompletableFuture<String> sendMessage(String operation, BigDecimal a, BigDecimal b) {
-        String id = UUID.randomUUID().toString();
-        String message = String.format("%s,%s,%s,%s", id, a, b, operation);
+    public CompletableFuture<String> sendMessage(String requestId, String operation, BigDecimal a, BigDecimal b) {
+        String message = String.format("%s,%s,%s,%s", requestId, a, b, operation);
         CompletableFuture<String> future = new CompletableFuture<>();
-        responseFutures.put(id, future);
-        kafkaTemplate.send(REQUEST_TOPIC, id, message);
-        logger.info("Sent message: ID={}, Operation={}", id, operation);
+        responseFutures.put(requestId, future);
+        kafkaTemplate.send(REQUEST_TOPIC, requestId, message);
+        logger.info("Sent message: requestId={}, a={}, b={}, Operation='{}'", requestId, a, b, operation);
         return future;
     }
 
     @KafkaListener(topics = RESPONSE_TOPIC)
-    public void handleResponse(String message, @Header("kafka_receivedMessageKey") String key) {
-        CompletableFuture<String> future = responseFutures.remove(key);
+    public void handleResponse(String result, @Header("kafka_receivedMessageKey") String requestId) {
+        CompletableFuture<String> future = responseFutures.remove(requestId);
         if (future != null) {
-            future.complete(message);
-            logger.info("Received response for ID {}: {}", key, message);
+            future.complete(result);
+            logger.info("Received response for requestId {}: result={}", requestId, result);
         } else {
-            logger.warn("No future associated with ID {}", key);
+            logger.warn("No future associated with requestId {}", requestId);
         }
     }
 }

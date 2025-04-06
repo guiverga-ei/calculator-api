@@ -23,6 +23,8 @@ services:
       - "8081:8081"
     depends_on:
       - kafka
+    volumes:
+      - ./serverlogs:/app/log
 
   rest:
     build: ./rest
@@ -30,3 +32,5 @@ services:
       - "8080:8080"
     depends_on:
       - kafka
+    volumes:
+      - ./serverlogs:/app/log
