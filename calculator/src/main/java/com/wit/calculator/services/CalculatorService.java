@@ -14,7 +14,7 @@ import java.math.MathContext;
 public class CalculatorService {
 
     private static final Logger log = LoggerFactory.getLogger(CalculatorService.class);
-    private static final MathContext mc = new MathContext(10); // Decimal precision
+    private static final MathContext mc = new MathContext(10);
     private static final String REQUEST_TOPIC = "calculator-requests";
     private static final String RESPONSE_TOPIC = "calculator-responses";
 
@@ -24,49 +24,70 @@ public class CalculatorService {
     @KafkaListener(topics = REQUEST_TOPIC)
     public void processCalculationRequest(String message) {
         log.info("Processing message: {}", message);
+        String id = null;
+
         try {
             String[] parts = message.split(",");
-            if (parts.length != 4) {  // Expecting 4 parts: ID, operand a, operand b, operation
-                log.error("Invalid message format: {}", message);
+            if (parts.length != 4) {
+                log.error("Invalid message format: expected 4 parts but got {}", parts.length);
                 return;
             }
-            String id = parts[0];  // Extract the unique identifier for the request
-            BigDecimal a = new BigDecimal(parts[1]);
-            BigDecimal b = new BigDecimal(parts[2]);
-            String operation = parts[3];
-            BigDecimal result = performOperation(a, b, operation);
-            if (result != null) {
-                kafkaTemplate.send(RESPONSE_TOPIC, id, result.toString());  // Send response with the same ID
-                log.info("Operation {} completed successfully for ID {}", operation, id);
-            } else {
-                kafkaTemplate.send(RESPONSE_TOPIC, id, "Operation not supported");
-                log.warn("Operation not supported: {}", operation);
+
+            id = parts[0].trim();
+            BigDecimal a = parseDecimal(parts[1]);
+            BigDecimal b = parseDecimal(parts[2]);
+            String operation = parts[3].trim().toLowerCase();
+
+            if (id.isEmpty()) {
+                log.error("Missing ID in request");
+                return;
             }
+
+            BigDecimal result = performOperation(a, b, operation);
+
+            kafkaTemplate.send(RESPONSE_TOPIC, id, result.toString());
+            log.info("Operation {} completed successfully for ID {}", operation, id);
+
+        } catch (ArithmeticException e) {
+            log.warn("Arithmetic error: {}", e.getMessage());
+            sendErrorResponse(id, "Division by zero is not allowed");
+
         } catch (NumberFormatException e) {
-            log.error("Number format exception: {}", e.getMessage());
-            kafkaTemplate.send(RESPONSE_TOPIC, "Invalid number format");
+            log.error("Invalid number format: {}", e.getMessage());
+            sendErrorResponse(id, "Invalid number format");
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Unsupported operation: {}", e.getMessage());
+            sendErrorResponse(id, e.getMessage());
+
         } catch (Exception e) {
-            log.error("Error processing calculation request", e);
-            kafkaTemplate.send(RESPONSE_TOPIC, "Error in processing request");
+            log.error("Unexpected error", e);
+            sendErrorResponse(id, "Error in processing request");
         }
     }
 
-    BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
-        switch (operation) {
-            case "sum":
-                return a.add(b, mc);
-            case "subtraction":
-                return a.subtract(b, mc);
-            case "multiplication":
-                return a.multiply(b, mc);
-            case "division":
+    private BigDecimal parseDecimal(String value) {
+        return new BigDecimal(value.trim());
+    }
+
+    private BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
+        return switch (operation) {
+            case "sum" -> a.add(b, mc);
+            case "subtraction" -> a.subtract(b, mc);
+            case "multiplication" -> a.multiply(b, mc);
+            case "division" -> {
                 if (b.compareTo(BigDecimal.ZERO) == 0) {
                     throw new ArithmeticException("Division by zero is not allowed");
                 }
-                return a.divide(b, mc);
-            default:
-                return null;
-        }
+                yield a.divide(b, mc);
+            }
+            default -> throw new IllegalArgumentException("Operation not supported: " + operation);
+        };
     }
 
+    private void sendErrorResponse(String id, String message) {
+        if (id != null && !id.isBlank()) {
+            kafkaTemplate.send(RESPONSE_TOPIC, id, message);
+        }
+    }
 }

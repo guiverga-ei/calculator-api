@@ -32,13 +32,6 @@ public class CalculatorController {
 
     @GetMapping(value = "/division", produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<ResponseEntity<?>> division(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        if (b.compareTo(BigDecimal.ZERO) == 0) {
-            return CompletableFuture.completedFuture(
-                    ResponseEntity.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body("{\"error\": \"Division by zero is not allowed\"}")
-            );
-        }
         return handleOperation("division", a, b);
     }
 
@@ -58,28 +51,3 @@ public class CalculatorController {
 
 }
 
-//    @GetMapping(path = "/{operation}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public CompletableFuture<ResponseEntity<?>> performOperation(@PathVariable String operation,
-//                                                                 @RequestParam BigDecimal a,
-//                                                                 @RequestParam BigDecimal b) {
-//        if (operation.equals("division") && b.compareTo(BigDecimal.ZERO) == 0) {
-//            return CompletableFuture.completedFuture(
-//                    ResponseEntity.badRequest()
-//                            .contentType(MediaType.APPLICATION_JSON)
-//                            .body("{\"error\": \"Division by zero is not allowed\"}")
-//            );
-//        }
-//
-//        return kafkaService.sendMessage(operation, a, b)
-//                .thenApply(result -> ResponseEntity.ok()
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .body("{\"result\": " + result + "}"))
-//                .handle((res, ex) -> {
-//                    if (ex != null) {
-//                        return ResponseEntity.internalServerError()
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .body("{\"error\": \"" + ex.getMessage() + "\"}");
-//                    }
-//                    return res;
-//                });
-//    }
