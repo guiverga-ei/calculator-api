@@ -1,56 +1,149 @@
-# Calculator API
-
-## Project Description
-
-This project is a RESTful API designed to provide basic functionalities of a calculator, including operations for addition, subtraction, multiplication, and division. It supports only two operands per operation and is capable of handling arbitrary precision decimal numbers.
-
-## Technologies Used
-
-- **Spring Boot**: Used to simplify the configuration and development of the project.
-- **Apache Kafka**: Employed for asynchronous communication between different modules of the application.
-- **Docker**: Used for containerization of the application and dependent services like Kafka and Zookeeper.
-- **Maven**: Dependency management and build automation.
-
-## Architecture
-
-The application is divided into two main modules:
-- **calculator**: Module responsible for the calculation logic.
-- **rest**: Module that exposes the RESTful API and handles HTTP requests.
-
-Communication between the modules is done via Apache Kafka, ensuring that the application can be scaled easily and maintains a clear separation between presentation logic and business logic.
-
-## Local Setup and Execution with Docker
-
-### Prerequisites
-- Docker
-- Docker Compose
-
-### Execution Instructions
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/guiverga-ei/calculator-api.git
 
 
-## Logging Configuration
+# 📐 Calculator API
 
-This project utilizes Logback for logging, which is a versatile and flexible framework that allows detailed logging across different levels. Each module (`calculator` and `rest`) contains a `logback.xml` configuration file, which is set up to handle the logging requirements efficiently.
+A simple RESTful Calculator API using **Spring Boot** with modular architecture and **Apache Kafka** for inter-module communication.  
+Supports basic arithmetic operations (`sum`, `subtraction`, `multiplication`, `division`) with **arbitrary precision decimal numbers**.
 
-### Levels of Logging
+---
 
-The logging system is set up to capture a range of information from the following levels:
+## 📦 Modules
 
-- **TRACE**: For extremely detailed outputs, used predominantly during development to trace the application's execution flow.
-- **DEBUG**: Provides detailed information useful for diagnosing problems during development.
-- **INFO**: Logs normal operation messages that are helpful in a production environment to track the application's behavior.
-- **WARN**: Indicates possible issues that do not currently affect the application but might lead to future errors.
-- **ERROR**: Captures serious issues where the application's functionality is impaired.
+- `rest`: Exposes the HTTP endpoints.
+- `calculator`: Consumes requests via Kafka and performs the actual calculations.
 
-### Output
+---
 
-Logs are directed to both the console and log files, ensuring that information is available for real-time monitoring and post-analysis. Log files are rotated daily to manage disk space effectively.
+## 🛠️ Technologies
 
-### Importance of Logging
+- Java 20
+- Spring Boot 3.4.4
+- Apache Kafka
+- SLF4J with Logback
+- Docker & Docker Compose
+- Maven (multi-module)
+- JUnit 5
 
-Adequate logging is crucial for diagnosing issues quickly and efficiently, allowing for faster fixes and ensuring system stability. The configured logging levels help in distinguishing between critical errors and informational messages, making the logs a valuable tool for ongoing maintenance and development.
+---
+
+## 🚀 How to Build and Run
+
+### 📦 Prerequisites
+
+- Java 20+
+- Maven
+- Docker & Docker Compose
+
+---
+
+### 🔧 Build the Project
+
+```bash
+  mvn clean install
+```
+
+---
+
+### 🐳 Docker: Build and Run
+
+#### 1. **Build Docker images** for both modules:
+
+```bash
+  docker build -t calculator-module ./calculator
+  docker build -t rest-module ./rest
+```
+
+#### 2. **Start Kafka, Zookeeper and both services**
+
+```bash
+  docker-compose up -d
+```
+
+---
+
+## 📤 API Endpoints
+
+Base URL: `http://localhost:8080/api`
+
+### Examples:
+
+#### ➕ Sum
+
+```http
+GET /api/sum?a=5&b=7
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+  "result": 12
+}
+```
+
+#### ❌ Division by zero
+
+```http
+GET /api/division?a=10&b=0
+```
+
+**Response:**
+```json
+{
+  "error": "Division by zero is not allowed"
+}
+```
+
+---
+
+## 🧪 Unit Tests
+
+Executa os testes:
+
+```bash
+  mvn test
+```
+
+Inclui testes para:
+- `CalculatorService` (lógica de operações)
+- `CalculatorController` (REST endpoints com mocks)
+
+---
+
+## 📄 Logging
+
+- Configurado com **SLF4J + Logback**
+- Cada módulo tem o seu ficheiro `logback.xml`
+- Logs vão para a consola e ficheiro (pasta `log/`, configurável)
+
+---
+
+## 🐘 Docker Compose Overview
+
+O `docker-compose.yml` inclui:
+
+- Zookeeper
+- Kafka
+- Serviços da aplicação (se incluíres os módulos `rest` e `calculator` no ficheiro)
+
+---
+
+## 📂 Project Structure
+
+```
+calculator-api/
+├── calculator/       # Kafka consumer + lógica de cálculo
+│   └── Dockerfile
+├── rest/             # REST API
+│   └── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## 👤 Author
+
+Guilherme Verga
+
 

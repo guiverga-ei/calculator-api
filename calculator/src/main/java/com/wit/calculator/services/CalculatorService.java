@@ -70,7 +70,7 @@ public class CalculatorService {
         return new BigDecimal(value.trim());
     }
 
-    private BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
+    BigDecimal performOperation(BigDecimal a, BigDecimal b, String operation) {
         return switch (operation) {
             case "sum" -> a.add(b, mc);
             case "subtraction" -> a.subtract(b, mc);

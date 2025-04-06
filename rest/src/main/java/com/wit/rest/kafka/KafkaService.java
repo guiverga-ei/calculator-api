@@ -19,7 +19,7 @@ public class KafkaService {
     private static final Logger logger = LoggerFactory.getLogger(KafkaService.class);
     private static final String REQUEST_TOPIC = "calculator-requests";
     private static final String RESPONSE_TOPIC = "calculator-responses";
-    private ConcurrentHashMap<String, CompletableFuture<String>> responseFutures = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CompletableFuture<String>> responseFutures = new ConcurrentHashMap<>();
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
