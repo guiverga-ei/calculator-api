@@ -1,6 +1,6 @@
 # ========== LOGS ==========
 *.log
-serverlogs/
+ServerLogs/
 calculator/log/
 rest/log/
 

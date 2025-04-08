@@ -3,7 +3,6 @@ package com.wit.calculator.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -12,8 +11,8 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 
 /**
- * Service responsible for processing calculator operations received via Kafka.
- * Listens to a request topic, processes the calculation, and sends the result back on a response topic.
+ * Service responsible for processing arithmetic operations received from a Kafka topic.
+ * It listens to incoming requests, performs the specified calculation, and sends the result back to a response topic.
  */
 @Service
 public class CalculatorService {
@@ -27,12 +26,15 @@ public class CalculatorService {
     private static final String REQUEST_TOPIC = "calculator-requests";
     private static final String RESPONSE_TOPIC = "calculator-responses";
 
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
     /**
-     * KafkaTemplate used to publish messages to the Kafka response topic.
-     * Automatically injected by Spring's dependency injection mechanism.
+     * Constructor-based dependency injection for KafkaTemplate.
+     * Promotes immutability and simplifies testing.
      */
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    public CalculatorService(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     /**
      * Kafka listener method that handles incoming calculation requests.
@@ -53,7 +55,7 @@ public class CalculatorService {
 
             requestId = parts[0].trim();
             if (requestId.isEmpty()) {
-                log.error("Missing ID in request");
+                log.error("Missing requestId in request");
                 return;
             }
             MDC.put("requestId", requestId); // Add requestId to logging context for traceability
@@ -75,7 +77,7 @@ public class CalculatorService {
             sendErrorResponse(requestId, "Division by zero is not allowed");
 
         } catch (NumberFormatException e) {
-            log.error("Invalid number format: {}", e.getMessage());
+            log.warn("Invalid number format: {}", e.getMessage());
             sendErrorResponse(requestId, "Invalid number format");
 
         } catch (IllegalArgumentException e) {

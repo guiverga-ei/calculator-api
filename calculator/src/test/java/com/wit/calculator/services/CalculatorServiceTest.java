@@ -1,6 +1,7 @@
 package com.wit.calculator.services;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -24,6 +25,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should process valid sum operation and return result")
     void testProcessCalculationRequest_validSum() {
         // given
         String requestId = "abc123";
@@ -37,6 +39,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should return error message when dividing by zero")
     void testProcessCalculationRequest_divisionByZero() {
         // given
         String requestId = "xyz789";
@@ -50,6 +53,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should return error message for invalid number format")
     void testProcessCalculationRequest_invalidNumberFormat() {
         // given
         String requestId = "badnumber";
@@ -63,6 +67,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should return error message for unsupported operation")
     void testProcessCalculationRequest_unsupportedOperation() {
         // given
         String requestId = "badop";
@@ -76,6 +81,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should ignore request with missing requestId")
     void testProcessCalculationRequest_missingId() {
         // given
         String message = " ,10,2,sum"; // empty ID
@@ -88,6 +94,7 @@ class CalculatorServiceTest {
     }
 
     @Test
+    @DisplayName("Should ignore request with invalid message format")
     void testProcessCalculationRequest_invalidFormat() {
         // given
         String message = "only,three,parts";
