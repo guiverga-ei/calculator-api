@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class KafkaService {
 
-    private static final Logger logger = LoggerFactory.getLogger(KafkaService.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaService.class);
 
     // Kafka topic names for sending requests and receiving responses
     private static final String REQUEST_TOPIC = "calculator-requests";
@@ -54,7 +54,7 @@ public class KafkaService {
         CompletableFuture<String> future = new CompletableFuture<>();
         responseFutures.put(requestId, future);
         kafkaTemplate.send(REQUEST_TOPIC, requestId, message);
-        logger.info("Sent message: requestId={}, a={}, b={}, Operation='{}'", requestId, a, b, operation);
+        log.info("Sent message: requestId={}, operation='{}', a={}, b={}", requestId, operation, a, b);
         return future;
     }
 
@@ -70,9 +70,9 @@ public class KafkaService {
         CompletableFuture<String> future = responseFutures.remove(requestId); // Retrieve and remove the future
         if (future != null) {
             future.complete(result);
-            logger.info("Received response for requestId {}: result={}", requestId, result);
+            log.info("Received response: requestId={}, result={}", requestId, result);
         } else {
-            logger.warn("No future associated with requestId {}", requestId);
+            log.warn("No future associated with requestId {}", requestId);
         }
     }
 }

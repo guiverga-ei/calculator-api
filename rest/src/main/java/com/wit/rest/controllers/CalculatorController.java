@@ -1,6 +1,8 @@
 package com.wit.rest.controllers;
 
 import com.wit.rest.kafka.KafkaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api")
 public class CalculatorController {
+
+    private static final Logger log = LoggerFactory.getLogger(CalculatorController.class);
 
     private final KafkaService kafkaService;
 
@@ -55,6 +59,7 @@ public class CalculatorController {
     private CompletableFuture<ResponseEntity<?>> handleOperation(String operation, BigDecimal a, BigDecimal b) {
         String requestId = UUID.randomUUID().toString(); // Generate a unique requestId for logging and tracking
         MDC.put("requestId", requestId); // Add the requestId to the logging context (for tracing logs)
+        log.info("Received operation: requestId={}, operation='{}', a={}, b={}", requestId, operation, a, b);
         return kafkaService.sendMessage(requestId, operation, a, b)
                 .handle((result, ex) -> {
                     MDC.clear(); // To prevent leakage between threads

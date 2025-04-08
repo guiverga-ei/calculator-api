@@ -1,66 +1,72 @@
 # 🧮 Calculator API
 
-This project is a distributed calculator application built with **Spring Boot** and **Apache Kafka**, designed to expose a RESTful API for basic arithmetic operations using **arbitrary precision decimal numbers**.
-
-## 📚 Project Description
-
-The application consists of two Spring Boot modules:
-
-- **rest**: Exposes a REST API to receive requests and send them to Kafka.
-- **calculator**: Listens to Kafka messages, processes the calculation, and returns the result.
-
-Communication between the modules is handled asynchronously through **Apache Kafka**.
+This is a distributed calculator system built with **Spring Boot** and **Apache Kafka**. It provides a RESTful API to perform basic arithmetic operations using **arbitrary precision decimal numbers**.
 
 ---
 
-## ⚙️ Technologies Used
+## 📚 Overview
+
+The project is composed of two independent Spring Boot services:
+
+- **rest**: Exposes the REST API and sends calculation requests to Kafka.
+- **calculator**: Listens to Kafka messages, performs the operations, and returns the result.
+
+These services communicate asynchronously using **Apache Kafka**.
+
+---
+
+## ⚙️ Technologies
 
 - Java 17
 - Spring Boot 3.x
 - Apache Kafka
 - Docker & Docker Compose
 - Maven
-- SLF4J + Logback (with file appender)
+- SLF4J + Logback (with file-based logging)
 - JUnit 5 (unit testing)
 
 ---
 
-## 📦 Project Structure
+## 📁 Project Structure
 
 ```plaintext
 calculator-api/
-├── calculator/               # Microservice that processes calculations
+├── calculator/               # Microservice responsible for performing calculations
 │   ├── src/
 │   ├── Dockerfile
 │   └── application.properties
-├── rest/                     # Microservice that exposes REST API
+├── rest/                     # Microservice that exposes the REST API
 │   ├── src/
 │   ├── Dockerfile
 │   └── application.properties
-├── docker-compose.yml        # Docker Compose config
-└── pom.xml                   # Maven parent pom
+├── docker-compose.yml        # Docker Compose configuration
+└── pom.xml                   # Maven parent POM
 ```
 
 ---
 
-## 🚀 How to Build and Run the Project
+## 🚀 How to Build and Run
 
-### 📌 Prerequisites
+### ✅ Prerequisites
 
-- [Docker](https://www.docker.com/get-started)
-- [Docker Compose](https://docs.docker.com/compose/)
+Make sure the following are installed:
+
 - [Java 17+](https://adoptium.net/)
 - [Maven](https://maven.apache.org/)
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
 
-### 🧱 1. Build JAR files
+### 📦 1. Build the application
 
-Run the following command from the project root to generate JARs:
+From the root directory of the project, run:
 
 ```bash
 mvn clean install -DskipTests
 ```
 
-### 🐳 2. Build and start all services with Docker Compose
+This will generate the JAR files for both modules.
+
+### 🐳 2. Start services using Docker Compose
 
 ```bash
 docker-compose build
@@ -70,14 +76,14 @@ docker-compose up -d
 This will:
 
 - Start Zookeeper and Kafka containers
-- Build and start the `rest` and `calculator` services
-- Expose the REST API at: `http://localhost:8080`
+- Build and run the `rest` and `calculator` services
+- Make the REST API available at: `http://localhost:8080`
 
 ---
 
 ## 📬 API Endpoints
 
-All endpoints accept two decimal operands: `a` and `b`.
+All endpoints accept two decimal operands via query parameters: `a` and `b`.
 
 | Operation      | HTTP Endpoint                          |
 |----------------|----------------------------------------|
@@ -86,22 +92,25 @@ All endpoints accept two decimal operands: `a` and `b`.
 | Multiplication | `GET /api/multiplication?a=2&b=4`      |
 | Division       | `GET /api/division?a=10&b=2`           |
 
-### ✅ Example
+### 🔍 Example
 
-#### Request:
+**Request:**
+
 ```http
 GET /api/sum?a=1.5&b=2.3
 Accept: application/json
 ```
 
-#### Response:
+**Response:**
+
 ```json
 {
   "result": 3.8
 }
 ```
 
-#### Division by zero:
+**Division by zero:**
+
 ```http
 GET /api/division?a=5&b=0
 ```
@@ -116,17 +125,17 @@ GET /api/division?a=5&b=0
 
 ## 📝 Logging
 
-- SLF4J + Logback is used in both modules
-- All log entries are saved to log files:
-    - `serverlogs/rest.log`
-    - `serverlogs/calculator.log`
-- MDC propagation ensures that each log line includes the request ID for traceability
+- Both modules use SLF4J + Logback.
+- Logs are written to rolling log files:
+  - `ServerLogs/rest.log`
+  - `ServerLogs/calculator.log`
+- MDC (`Mapped Diagnostic Context`) is used to tag logs with a unique `requestId` to enable traceability across services.
 
 ---
 
 ## 🧪 Running Tests
 
-To run unit tests:
+To execute the unit tests for both modules:
 
 ```bash
 mvn test
@@ -134,11 +143,24 @@ mvn test
 
 ---
 
-## 🐾 Kafka
+## 🐾 Kafka Topics
 
-- Topics used:
-    - `calculator-requests`
-    - `calculator-responses`
+The following Kafka topics are used for communication:
+
+- `calculator-requests`: receives operation requests
+- `calculator-responses`: carries back the operation results
 
 ---
 
+## 📌 Final Notes
+
+- Logs and errors are properly traced using structured logging and unique identifiers.
+- A simple message format is used for Kafka communication:  
+  `"requestId,a,b,operation"`
+- Everything runs via Docker with logs persisted through bind mounts (`./ServerLogs` folder).
+
+---
+
+## 👤 Author
+
+**Guilherme Verga**  

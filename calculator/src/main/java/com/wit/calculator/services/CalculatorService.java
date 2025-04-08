@@ -64,13 +64,13 @@ public class CalculatorService {
             BigDecimal b = parseDecimal(parts[2]);
             String operation = parts[3].trim().toLowerCase();
 
-            log.info("Processing message requestId: {}, a={}, b={}, operation='{}'", requestId, a, b, operation);
+            log.info("Processing message: requestId={}, operation='{}', a={}, b={}", requestId, operation, a, b);
 
             BigDecimal result = performOperation(a, b, operation);
 
             // Send the result to the response topic
             kafkaTemplate.send(RESPONSE_TOPIC, requestId, result.toString());
-            log.info("Operation '{}' completed successfully for requestId {}, result={}", operation, requestId, result);
+            log.info("Operation '{}' completed successfully: requestId={}, result={}", operation, requestId, result);
 
         } catch (ArithmeticException e) {
             log.warn("Arithmetic error: {}", e.getMessage());
