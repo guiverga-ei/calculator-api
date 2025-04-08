@@ -1,48 +1,101 @@
 package com.wit.calculator.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.math.BigDecimal;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class CalculatorServiceTest {
 
-    private final CalculatorService calculatorService = new CalculatorService();
+    @Mock
+    private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Test
-    void shouldAddTwoNumbers() {
-        BigDecimal result = calculatorService.performOperation(new BigDecimal("2"), new BigDecimal("3"), "sum");
-        assertThat(result).isEqualByComparingTo(new BigDecimal("5"));
+    @InjectMocks
+    private CalculatorService calculatorService;
+
+    @BeforeEach
+    void setup() {
+        Mockito.reset(kafkaTemplate);
     }
 
     @Test
-    void shouldSubtractTwoNumbers() {
-        BigDecimal result = calculatorService.performOperation(new BigDecimal("5"), new BigDecimal("3"), "subtraction");
-        assertThat(result).isEqualByComparingTo(new BigDecimal("2"));
+    void testProcessCalculationRequest_validSum() {
+        // given
+        String requestId = "abc123";
+        String message = requestId + ",2,3,sum";
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verify(kafkaTemplate).send("calculator-responses", requestId, "5");
     }
 
     @Test
-    void shouldMultiplyTwoNumbers() {
-        BigDecimal result = calculatorService.performOperation(new BigDecimal("4"), new BigDecimal("2.5"), "multiplication");
-        assertThat(result).isEqualByComparingTo(new BigDecimal("10.0"));
+    void testProcessCalculationRequest_divisionByZero() {
+        // given
+        String requestId = "xyz789";
+        String message = requestId + ",10,0,division";
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verify(kafkaTemplate).send("calculator-responses", requestId, "Division by zero is not allowed");
     }
 
     @Test
-    void shouldDivideTwoNumbers() {
-        BigDecimal result = calculatorService.performOperation(new BigDecimal("10"), new BigDecimal("2"), "division");
-        assertThat(result).isEqualByComparingTo(new BigDecimal("5.0"));
+    void testProcessCalculationRequest_invalidNumberFormat() {
+        // given
+        String requestId = "badnumber";
+        String message = requestId + ",abc,2,sum";
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verify(kafkaTemplate).send("calculator-responses", requestId, "Invalid number format");
     }
 
     @Test
-    void shouldThrowOnDivisionByZero() {
-        assertThrows(ArithmeticException.class, () -> {
-            calculatorService.performOperation(new BigDecimal("10"), BigDecimal.ZERO, "division");
-        });
+    void testProcessCalculationRequest_unsupportedOperation() {
+        // given
+        String requestId = "badop";
+        String message = requestId + ",10,2,mod";
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verify(kafkaTemplate).send(eq("calculator-responses"), eq(requestId), contains("Operation not supported"));
     }
 
     @Test
-    void shouldReturnNullOnInvalidOperation() {
-        BigDecimal result = calculatorService.performOperation(new BigDecimal("2"), new BigDecimal("3"), "invalid");
-        assertThat(result).isNull();
+    void testProcessCalculationRequest_missingId() {
+        // given
+        String message = " ,10,2,sum"; // empty ID
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verifyNoInteractions(kafkaTemplate);
+    }
+
+    @Test
+    void testProcessCalculationRequest_invalidFormat() {
+        // given
+        String message = "only,three,parts";
+
+        // when
+        calculatorService.processCalculationRequest(message);
+
+        // then
+        verifyNoInteractions(kafkaTemplate);
     }
 }

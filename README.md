@@ -57,14 +57,14 @@ calculator-api/
 Run the following command from the project root to generate JARs:
 
 ```bash
-  mvn clean install -DskipTests
+mvn clean install -DskipTests
 ```
 
 ### 🐳 2. Build and start all services with Docker Compose
 
 ```bash
-  docker-compose build
-  docker-compose up -d
+docker-compose build
+docker-compose up -d
 ```
 
 This will:
@@ -118,8 +118,8 @@ GET /api/division?a=5&b=0
 
 - SLF4J + Logback is used in both modules
 - All log entries are saved to log files:
-    - `log/rest.log`
-    - `log/calculator.log`
+    - `serverlogs/rest.log`
+    - `serverlogs/calculator.log`
 - MDC propagation ensures that each log line includes the request ID for traceability
 
 ---
@@ -129,7 +129,7 @@ GET /api/division?a=5&b=0
 To run unit tests:
 
 ```bash
-  mvn test
+mvn test
 ```
 
 ---
