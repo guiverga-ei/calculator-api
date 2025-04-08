@@ -1,39 +1,56 @@
-# Logs
+# ========== LOGS ==========
 *.log
 serverlogs/
 calculator/logs/
 rest/logs/
 
-# Maven
+# ========== MAVEN ==========
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
-# Eclipse / STS
-.apt_generated
+# ========== IDEs ==========
+
+## Eclipse / Spring Tool Suite (STS)
+.apt_generated/
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-# IntelliJ IDEA
+## IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
+out/
 
-# NetBeans
+## NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 
-# VS Code
+## Visual Studio Code
 .vscode/
 
-# OS-specific
+# ========== OS-specific ==========
+
+# macOS
 .DS_Store
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========== BUILD SYSTEMS ==========
+build/
+
+# ========== OTHER ==========
+*.swp
+*.bak
+*.tmp
+*.orig
