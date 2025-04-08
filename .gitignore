@@ -1,8 +1,8 @@
 # ========== LOGS ==========
 *.log
 serverlogs/
-calculator/logs/
-rest/logs/
+calculator/log/
+rest/log/
 
 # ========== MAVEN ==========
 target/

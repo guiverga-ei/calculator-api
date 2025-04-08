@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
+    <!-- Console appender: logs will be printed to the standard output -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
+            <!-- Log format includes timestamp, thread, log level, class name, requestId (from MDC), and message -->
             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- File appender: logs will be written to a rotating file -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>log/calculator.log</file>
+
+        <!-- Rolling policy: daily log rotation with 30 days retention -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>log/calculator-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
+
         <encoder>
+            <!-- Same format as the console log -->
             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- Root logger: log level is INFO, and logs will go to both STDOUT and FILE -->
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>

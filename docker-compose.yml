@@ -24,7 +24,7 @@ services:
     depends_on:
       - kafka
     volumes:
-      - ./serverlogs:/app/log
+      - ./ServerLogs:/app/log
 
   rest:
     build: ./rest
@@ -33,4 +33,4 @@ services:
     depends_on:
       - kafka
     volumes:
-      - ./serverlogs:/app/log
+      - ./ServerLogs:/app/log
